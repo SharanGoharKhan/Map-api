@@ -58,7 +58,22 @@ app.get('/api', function(req, res) {
 app.get('/api/agent', function(req, res) {
   console.log(req.query);
 
-  res.json({message: 'agent is working'});
+  Agent.find({
+    currentLocation: {
+      $near : {
+        $geometry: {
+          type: 'Point',
+          coordinates: [req.query.lng, req.query.lat]
+        },
+        $minDistance: 0,
+        $maxDistance: 2000
+      }
+    }
+  }).then((doc) => {
+    console.log(doc);
+
+    res.json(doc);
+  });
 })
 app.post('/api/agent', function(req, res) {
   var ltLng = [req.body.lng, req.body.lat];
