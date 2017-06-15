@@ -1,80 +1,81 @@
 var app = require('express')();
+var bodyParser = require('body-parser');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var mongoose   = require('mongoose');
+var cors = require('cors');
+
+var Agent = require('./model/agents');
+
+// configure app to use bodyParser()
+// this will let us get the data from a POST
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cors());
+
+// connect to our database
+mongoose.connect('mongodb://127.0.0.1:27017/map-app');
 var currentDummyLocation = [
-  {"lat":"33.7102021","lng":"73.0274404","timeStamp":4,"date":"2016-11-04T12:17:29.536Z"},
-  {"lat":"33.7102021","lng":"73.0274404","timeStamp":4,"date":"2016-11-04T12:17:35.041Z"},
-  {"lat":"33.7102021","lng":"73.0274404","timeStamp":4,"date":"2016-11-04T12:17:39.693Z"},
-  {"lat":"33.7102021","lng":"73.0274404","timeStamp":4,"date":"2016-11-04T12:17:44.713Z"},
-  {"lat":"33.7102021","lng":"73.0274404","timeStamp":4,"date":"2016-11-04T12:17:49.780Z"},
-  {"lat":"33.7102021","lng":"73.0274404","timeStamp":4,"date":"2016-11-04T12:17:55.727Z"},
-  {"lat":"33.7143371","lng":"73.0668357","timeStamp":4,"date":"2016-11-04T12:17:59.918Z"},
-  {"lat":"33.7152819","lng":"73.0689896","timeStamp":4,"date":"2016-11-04T12:18:04.955Z"},
-  {"lat":"33.7162568","lng":"73.0708123","timeStamp":4,"date":"2016-11-04T12:18:09.996Z"},
-  {"lat":"33.7171247","lng":"73.0703405","timeStamp":4,"date":"2016-11-04T12:18:15.041Z"},
-  {"lat":"33.7162531","lng":"73.0684602","timeStamp":4,"date":"2016-11-04T12:18:20.826Z"},
-  {"lat":"33.7150996","lng":"73.0662347","timeStamp":4,"date":"2016-11-04T12:18:25.075Z"},
-  {"lat":"33.7141339","lng":"73.0643924","timeStamp":4,"date":"2016-11-04T12:18:30.258Z"},
-  {"lat":"33.712974","lng":"73.0621774","timeStamp":4,"date":"2016-11-04T12:18:35.302Z"},
-  {"lat":"33.7118092","lng":"73.0599641","timeStamp":4,"date":"2016-11-04T12:18:40.181Z"},
-  {"lat":"33.7108288","lng":"73.0581309","timeStamp":4,"date":"2016-11-04T12:18:45.216Z"},
-  {"lat":"33.7108288","lng":"73.0581309","timeStamp":4,"date":"2016-11-04T12:18:50.269Z"},
-  {"lat":"33.7096849","lng":"73.0559215","timeStamp":4,"date":"2016-11-04T12:18:55.314Z"},
-  {"lat":"33.7087241","lng":"73.0540672","timeStamp":4,"date":"2016-11-04T12:19:00.395Z"},
-  {"lat":"33.7075595","lng":"73.0518485","timeStamp":4,"date":"2016-11-04T12:19:05.426Z"},
-  {"lat":"33.7065906","lng":"73.0500151","timeStamp":4,"date":"2016-11-04T12:19:10.446Z"},
-  {"lat":"33.7054267","lng":"73.0478136","timeStamp":4,"date":"2016-11-04T12:19:15.506Z"},
-  {"lat":"33.7044825","lng":"73.0459788","timeStamp":4,"date":"2016-11-04T12:19:20.557Z"},
-  {"lat":"33.703326","lng":"73.0437579","timeStamp":4,"date":"2016-11-04T12:19:25.586Z"},
-  {"lat":"33.702349","lng":"73.0419293","timeStamp":4,"date":"2016-11-04T12:19:30.660Z"},
-  {"lat":"33.7012111","lng":"73.0397184","timeStamp":4,"date":"2016-11-04T12:19:35.687Z"},
-  {"lat":"33.7000787","lng":"73.0374988","timeStamp":4,"date":"2016-11-04T12:19:40.733Z"},
-  {"lat":"33.7000787","lng":"73.0374988","timeStamp":4,"date":"2016-11-04T12:19:45.878Z"},
-  {"lat":"33.6999738","lng":"73.0358646","timeStamp":4,"date":"2016-11-04T12:19:50.808Z"},
-  {"lat":"33.7018309","lng":"73.034476","timeStamp":4,"date":"2016-11-04T12:19:55.891Z"},
-  {"lat":"33.7033808","lng":"73.0333282","timeStamp":4,"date":"2016-11-04T12:20:00.937Z"},
-  {"lat":"33.7052346","lng":"73.031955","timeStamp":4,"date":"2016-11-04T12:20:05.977Z"},
-  {"lat":"33.7067857","lng":"73.0308056","timeStamp":4,"date":"2016-11-04T12:20:11.037Z"},
-  {"lat":"33.7086241","lng":"73.029387","timeStamp":4,"date":"2016-11-04T12:20:16.048Z"},
-  {"lat":"33.7101607","lng":"73.0282398","timeStamp":4,"date":"2016-11-04T12:20:21.097Z"},
-  {"lat":"33.7120262","lng":"73.0268858","timeStamp":4,"date":"2016-11-04T12:20:26.135Z"},
-  {"lat":"33.7122263","lng":"73.025196","timeStamp":4,"date":"2016-11-04T12:20:31.156Z"},
-  {"lat":"33.7110731","lng":"73.0229952","timeStamp":4,"date":"2016-11-04T12:20:36.184Z"},
-  {"lat":"33.7110731","lng":"73.0229952","timeStamp":4,"date":"2016-11-04T12:20:41.237Z"},
-  {"lat":"33.7098141","lng":"73.0213166","timeStamp":4,"date":"2016-11-04T12:20:46.287Z"},
-  {"lat":"33.7097868","lng":"73.0233432","timeStamp":4,"date":"2016-11-04T12:20:51.321Z"},
-  {"lat":"33.7100483","lng":"73.0259233","timeStamp":4,"date":"2016-11-04T12:20:56.459Z"},
-  {"lat":"33.7102652","lng":"73.0280631","timeStamp":4,"date":"2016-11-04T12:21:01.422Z"},
-  {"lat":"33.7105288","lng":"73.0306634","timeStamp":4,"date":"2016-11-04T12:21:06.433Z"},
-  {"lat":"33.7107479","lng":"73.0328255","timeStamp":4,"date":"2016-11-04T12:21:11.733Z"},
-  {"lat":"33.711011","lng":"73.0354209","timeStamp":4,"date":"2016-11-04T12:21:16.528Z"},
-  {"lat":"33.7112292","lng":"73.0375743","timeStamp":4,"date":"2016-11-04T12:21:21.617Z"},
-  {"lat":"33.7114908","lng":"73.0401552","timeStamp":4,"date":"2016-11-04T12:21:26.601Z"},
-  {"lat":"33.7117093","lng":"73.042311","timeStamp":4,"date":"2016-11-04T12:21:31.645Z"},
-  {"lat":"33.7117093","lng":"73.042311","timeStamp":4,"date":"2016-11-04T12:21:36.717Z"},
-  {"lat":"33.7119694","lng":"73.0448768","timeStamp":4,"date":"2016-11-04T12:21:41.760Z"},
-  {"lat":"33.7121896","lng":"73.0470497","timeStamp":4,"date":"2016-11-04T12:21:46.806Z"},
-  {"lat":"33.7124506","lng":"73.0496248","timeStamp":4,"date":"2016-11-04T12:21:51.850Z"},
-  {"lat":"33.712714","lng":"73.0522239","timeStamp":4,"date":"2016-11-04T12:21:56.920Z"},
-  {"lat":"33.7129334","lng":"73.054388","timeStamp":4,"date":"2016-11-04T12:22:01.950Z"},
-  {"lat":"33.7131901","lng":"73.0569208","timeStamp":4,"date":"2016-11-04T12:22:07.140Z"},
-  {"lat":"33.7134097","lng":"73.0590877","timeStamp":4,"date":"2016-11-04T12:22:12.042Z"},
-  {"lat":"33.7136717","lng":"73.0616727","timeStamp":4,"date":"2016-11-04T12:22:17.094Z"},
-  {"lat":"33.7138909","lng":"73.0638351","timeStamp":4,"date":"2016-11-04T12:22:22.248Z"},
-  {"lat":"33.7141532","lng":"73.0664226","timeStamp":4,"date":"2016-11-04T12:22:27.176Z"},
-  {"lat":"33.7141532","lng":"73.0664226","timeStamp":4,"date":"2016-11-04T12:22:32.429Z"},
-  {"lat":"33.7148729","lng":"73.0682125","timeStamp":4,"date":"2016-11-04T12:22:37.274Z"},
-  {"lat":"33.7160429","lng":"73.0704141","timeStamp":4,"date":"2016-11-04T12:22:42.307Z"},
-  {"lat":"33.7172811","lng":"73.0711234","timeStamp":4,"date":"2016-11-04T12:22:47.578Z"},
-  {"lat":"33.7164635","lng":"73.0688774","timeStamp":4,"date":"2016-11-04T12:22:52.409Z"},
-  {"lat":"33.7153292","lng":"73.0666726","timeStamp":4,"date":"2016-11-04T12:22:57.475Z"},
-  {"lat":"33.714367","lng":"73.0648377","timeStamp":4,"date":"2016-11-04T12:23:02.540Z"},
-  {"lat":"33.7132117","lng":"73.0626309","timeStamp":4,"date":"2016-11-04T12:23:07.581Z"},
-  {"lat":"33.712243","lng":"73.0607782","timeStamp":4,"date":"2016-11-04T12:23:12.901Z"}
+  {
+           "lat" : "33.6618987",
+           "lng" : "73.0774202"
+       }, 
+       {
+           "lat" : "33.7156473",
+           "lng" : "73.0657074"
+       }, 
+       {
+           "lat" : "33.7143657",
+           "lng" : "73.0659414"
+       }, 
+       {
+           "lat" : "33.7120572",
+           "lng" : "73.0560465"
+       }, 
+       {
+           "lat" : "33.7121363",
+           "lng" : "73.0560461"
+       }, 
+       {
+           "lat" : "33.6955469",
+           "lng" : "73.0065569"
+       }, 
+       {
+           "lat" : "33.7143653",
+           "lng" : "73.0659387"
+       }, 
+       {
+           "lat" : "33.7143675",
+           "lng" : "73.0659516"
+       }
 ];
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
+app.get('/api', function(req, res) {
+  res.json({message: 'its working updated again'});
+})
+app.get('/api/agent', function(req, res) {
+  // console.log(lat);
+  // console.log(lng);
+  console.log(req.query);
+
+  res.json({message: 'agent is working'});
+})
+app.post('/api/agent', function(req, res) {
+  console.log(JSON.stringify(req.body));
+  res.send('ok');
+  var agent = new Agent();
+  agent.name = req.body.name;
+  agent.currentLocation = req
+  console.log(req.body.name);
+  agent.save(function(err) {
+    if (err){
+      res.send(err);  
+    }
+    res.json({message: 'Agent created'});
+  })
+})
 var counter = 0;
 var lt_lng= {};
     io.on('connection', (socket) => {
